@@ -195,10 +195,9 @@ void free_offsets(tuple_t *offsets) {
 // Decompresses a file of up to 64 kb.
 // unpacked/packed are 65536 byte buffers to read/from write to, 
 // Returns the size of the uncompressed data in bytes or 0 if decompression failed.
-size_t unpack(uint8_t *packed, uint8_t *unpacked) {
-	// current input/output positions
-	uint32_t  inpos = 0;
-	uint32_t  outpos = 0;
+size_t unpack(uint8_t *packed, uint32_t inpos, uint8_t *unpacked, uint32_t outpos) {
+	uint32_t outpos_start;
+	outpos_start = outpos;
 
 	uint8_t  input;
 	uint16_t command, length, offset;
@@ -318,7 +317,7 @@ size_t unpack(uint8_t *packed, uint8_t *unpacked) {
 	printf("\nCompressed size:   %u bytes\n", inpos);
 #endif
 
-	return (size_t)outpos;
+	return (size_t)(outpos - outpos_start);
 }
 
 // Decompress data from an offset into a file
@@ -328,7 +327,7 @@ size_t unpack_from_file (FILE *file, size_t offset, uint8_t *unpacked) {
 	fseek(file, offset, SEEK_SET);
 	fread((void*)packed, DATA_SIZE, 1, file);
 	if (!ferror(file))
-		return unpack(packed, unpacked);
+		return unpack(packed, 0, unpacked, 0);
 		
 	return 0;
 }
